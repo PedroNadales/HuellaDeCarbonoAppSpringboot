@@ -3,6 +3,7 @@ package org.pedro.huelladecarbonospringboot.service;
 import org.pedro.huelladecarbonospringboot.dto.CategoriaRequest;
 import org.pedro.huelladecarbonospringboot.model.Categoria;
 import org.pedro.huelladecarbonospringboot.repository.CategoriaRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -45,6 +46,14 @@ public class CategoriaService {
 
     public void delete(Long id) {
         Categoria existing = findById(id);
-        categoriaRepository.delete(existing);
+        try {
+            categoriaRepository.delete(existing);
+            categoriaRepository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede eliminar la categoria porque tiene actividades o recomendaciones asociadas"
+            );
+        }
     }
 }
